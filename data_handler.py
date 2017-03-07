@@ -30,8 +30,10 @@ class DataHandler:
 	def determine_type(self, file):
 		if file.find('left') != -1:
 			return 0
-		else:
+		elif file.find('right') != -1:
 			return 1
+		else:
+			return 2
 
 	def shuffle(self):
 		assert len(self.data) == len(self.target)

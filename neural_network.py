@@ -6,19 +6,19 @@ class NeuralNetwork:
 		if clf_file == '':
 			self.clf = MLPClassifier(
 				solver='lbfgs',
-				alpha=1e-1,
-				hidden_layer_sizes=(100, 5),
+				alpha=1e-5,
+				hidden_layer_sizes=(100, 10),
 				random_state=1,
 				activation='logistic'
 			)
 		else:
 			self.load(clf_file)
 
-	def set_data(self, data, target, test_amount=5):
+	def set_data(self, data, target, test_amount=7):
 		self.train_data = data[:-test_amount]
 		self.train_target = target[:-test_amount]
-		self.test_data = data[test_amount+1:]
-		self.test_target = target[test_amount+1:]
+		self.test_data = data[-test_amount:]
+		self.test_target = target[-test_amount:]
 
 	def fit(self):
 		try:
