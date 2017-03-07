@@ -21,4 +21,4 @@ for i in range(0, loop_times):
 print('Average:', accum / loop_times)
 
 # nn.load()
-print(nn.predict([dh.convert_image(dh.get_image('test.png'))]))
+# print(nn.predict([dh.convert_image(dh.get_image('test.png'))]))
