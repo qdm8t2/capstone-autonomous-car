@@ -1,130 +1,180 @@
-from numpy import exp, array, random, dot
+from numpy import exp, array, random, dot, abs, mean
+import pickle
 
 class NeuralNetworkTwo:
-	def __init__(self, hidden_layer_sizes=(100, 10)):
-		self.hidden_layer_sizes = hidden_layer_sizes
+    def __init__(self, hidden_layers=[25, 10]):
+        """
+        Constructor
 
-	def sigmoid(self, x):
-		"""
-		Sigmoid function, maps value between 0 and 1
+        :param hidden_layers: Array of hidden layer node amounts
+        """
+        self.hidden_layers = hidden_layers
 
-		:param x: Value to be converted
-		:returns: Probability of value
-		"""
+    def sigmoid(self, x):
+        """
+        Sigmoid function, maps value between 0 and 1
 
-		return 1 / (1 + exp(-x))
+        :param x: Value to be converted
+        :returns: Probability of value
+        """
 
-	def sigmoid_deriv(self, x):
-		"""
-		Derivative of sigmoid function, used to determine confidence
+        return 1 / (1 + exp(-x))
 
-		:param x: Weight
-		:returns: Confidence of weight
-		"""
+    def sigmoid_deriv(self, x):
+        """
+        Derivative of sigmoid function, used to determine confidence
 
-		return x * (1 - x)
+        :param x: Weight
+        :returns: Confidence of weight
+        """
 
-	def train(self, data, target, iterations=10000):
-		"""
-		Trains the network by adjusting weights of connections to
-		 move towards more correct predictions
+        return x * (1 - x)
 
-		:param data: List of data
-		:param target: List of outputs
-		:param iterations: Number of times loop should run
-		"""
+    def set_weights(self, seed=1):
+        """
+        Set's weights for node connections
 
-		self.data = data
+        :param seed: Seed used in random function
+        """
+        # Seed the random function
+        random.seed(seed)
 
-		# Init weights
-		self.set_weights()
+        # Create list of all layers
+        #  input + hidden + output
+        layers = [len(self.data[0])] + self.hidden_layers + [1]
 
-		# Train
-		for i in range(iterations):
-			adjusts = []
+        # Initialize weights
+        self.weights = []
 
-			# Pass training data through the neural network
-			#  and get layers
-			layers = self.predict(data, True)
+        # Set random wights
+        for i in range(len(layers) - 1):
+            weight_layer = self.create_weight_layer(
+                layers[i],
+                layers[i+1]
+            )
+            self.weights.append(weight_layer)
 
-			# Determine final error
-			error = target - layers[-1]
+    def create_weight_layer(self, num_input, num_output):
+        """
+        Creates a layer with random weights connection input and output
 
-			# Determine weight adjustments
-			adjusts.append(error * self.sigmoid_deriv(layers[-1]))
+        :param num_input: The number of input nodes
+        :param num_output: The number of output nodes
+        :returns: Weighted matrix with weights between -1 and 1, with mean 0 
+        """
+        return 2 * random.random((num_input, num_output)) - 1
 
-			# Loop from 2nd to last layer, to 0th layer
-			for j in range(2, len(layers)):
-				# Take dot product of next layer's (+1) adjustments
-				#  and next layer's weights
-				error = adjusts[-1].dot(self.weights[-j+1].T)
+    def predict(self, inputs, return_layers=False):
+        """
+        Predicts values of inputs
 
-				# Determine adjustment amount
-				adjust = error * self.sigmoid_deriv(layers[-j])
-				adjusts.append(adjust)
+        :param inputs: The inputs to predict
+        :param return_layers: If should return individual layers
+        :returns: Prediction or layers
+        """
 
-				# Update weights of current layer
-				self.weights[-j+1] += layers[-j].T.dot(adjusts[-2])
+        layers = []
+        curr_layer = inputs
 
-	def predict(self, inputs, return_layers=False):
-		"""
-		Predicts values of inputs
+        # Loop for each layer of weights
+        for weight in self.weights:
+            # Collect layers if need to return them
+            if return_layers:
+                layers.append(curr_layer)
 
-		:param inputs: The inputs to predict
-		:param return_layers: If should return individual layers
-		:returns: Prediction or layers
-		"""
+            # Apply current layer's weights to previous layer's values
+            curr_layer = self.sigmoid(
+                dot(curr_layer, weight)
+            )
 
-		layers = []
-		curr_layer = inputs
+        if return_layers:
+            layers.append(curr_layer)
+            return layers
+        else:
+            return curr_layer
 
-		# Loop for each layer of weights
-		for weight in self.weights:
-			# Collect layers if need to return them
-			if return_layers:
-				layers.append(curr_layer)
+    def train(self, data, target, iterations=10000, max_error=0, log=False):
+        """
+        Trains the network by adjusting weights of connections to
+         move towards more correct predictions
 
-			# Apply current layer's weights to previous layer's values
-			curr_layer = self.sigmoid(
-				dot(curr_layer, weight)
-			)
+        :param data: List of data
+        :param target: List of outputs
+        :param iterations: Number of times loop should run
+        :param max_error: Learning will stop if error is below this number
+        :param log: If should log error amounts
+        """
 
-		if return_layers:
-			layers.append(curr_layer)
-			return layers
-		else:
-			return curr_layer
+        self.data = data
 
-	def set_weights(self, seed=1):
-		"""
-		Set's weights for node connections
+        # Init weights
+        self.set_weights()
 
-		:param seed: Seed used in random function
-		"""
-		# Seed the random function
-		random.seed(seed)
+        # Train
+        for i in range(iterations):
+            # Pass training data through the neural network
+            #  and get layers
+            layers = self.predict(data, True)
+            layer_len = len(layers)
 
-		# Create list of all layers
-		#  input + hidden + output
-		layers = (len(self.data[0]),)  + self.hidden_layer_sizes + (1,)
+            adjusts = []
 
-		# Initialize weights
-		self.weights = []
+            # Determine final error
+            error = target - layers[-1]
+            avg_error = mean(abs(error))
 
-		# Set random wights
-		for i in range(len(layers) - 2):
-			weight_layer = self.create_weight_layer(
-				layers[i],
-				layers[i+1]
-			)
-			self.weights.append(weight_layer)
+            if log and (i % 10) == 0:
+                print('Error:', str(avg_error))
 
-	def create_weight_layer(self, num_input, num_output):
-		"""
-		Creates a layer with random weights connection input and output
+            # Quit if error 
+            if avg_error < max_error:
+                break
 
-		:param num_input: The number of input nodes
-		:param num_output: The number of output nodes
-		:returns: Weighted matrix with weights between -1 and 1, with mean 0 
-		"""
-		return 2 * random.random((num_input, num_output)) - 1
+            # Determine weight adjustment for first weights
+            adjust = error * self.sigmoid_deriv(layers[-1])
+            adjusts.append(adjust)
+
+            # Determine weight adjustments for other weights
+            for j in range(2, layer_len):
+                # Take dot product of next layer's (+1) adjustments
+                #  and next layer's weights
+                error = adjust.dot(self.weights[-j+1].T)
+
+                # Determine adjustment amount
+                adjust = error * self.sigmoid_deriv(layers[-j])
+                adjusts.append(adjust)
+
+            # Adjust the weights
+            for j in range(len(self.weights)):
+                self.weights[j] += layers[j].T.dot(adjusts[-j-1])
+
+        if log:
+            print('Final Error:', str(avg_error))
+
+    def save(self, filename='data/models/current.pkl'):
+        """
+        Save network to a location
+
+        :param filename: Where to save to
+        """
+
+        # Data object to store
+        data = {
+            'weights': self.weights,
+        }
+
+        # Write to file
+        with open(filename, 'wb') as fid:
+            pickle.dump(data, fid)
+
+    def load(self, filename='data/models/current.pkl'):
+        """
+        Load network from file
+
+        :param filename: File data is stored in
+        """
+
+        with open(filename, 'rb') as fid:
+            data = pickle.load(fid)
+
+        self.weights = data['weights']

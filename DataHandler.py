@@ -12,7 +12,7 @@ class DataHandler:
 		for file in files:
 			image = self.get_image(file)
 			self.data.append(self.convert_image(image))
-			self.target.append(self.determine_type(file))
+			self.target.append([self.determine_type(file)])
 		self.shuffle()
 
 	def get_image(self, file):
@@ -31,9 +31,9 @@ class DataHandler:
 		if file.find('left') != -1:
 			return 0
 		elif file.find('right') != -1:
-			return 1
+			return .5
 		else:
-			return 2
+			return 1
 
 	def shuffle(self):
 		assert len(self.data) == len(self.target)
