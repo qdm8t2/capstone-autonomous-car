@@ -2,7 +2,7 @@ from numpy import exp, array, random, dot, abs, mean
 import pickle
 
 class NeuralNetworkTwo:
-    def __init__(self, hidden_layers=[25, 10]):
+    def __init__(self, hidden_layers=[100, 10]):
         """
         Constructor
 
@@ -41,7 +41,7 @@ class NeuralNetworkTwo:
 
         # Create list of all layers
         #  input + hidden + output
-        layers = [len(self.data[0])] + self.hidden_layers + [1]
+        layers = [len(self.train_data[0])] + self.hidden_layers + [1]
 
         # Initialize weights
         self.weights = []
@@ -64,7 +64,7 @@ class NeuralNetworkTwo:
         """
         return 2 * random.random((num_input, num_output)) - 1
 
-    def predict(self, inputs, return_layers=False):
+    def predict(self, inputs, return_layers=False, round_vals=False):
         """
         Predicts values of inputs
 
@@ -90,10 +90,19 @@ class NeuralNetworkTwo:
         if return_layers:
             layers.append(curr_layer)
             return layers
+        elif round_vals:
+            return [self.custom_round(x) for x in curr_layer.reshape(-1)]
         else:
             return curr_layer
 
-    def train(self, data, target, iterations=10000, max_error=0, log=False):
+    def train(
+        self,
+        data=None,
+        target=None,
+        iterations=10000,
+        max_error=0,
+        log=False
+    ):
         """
         Trains the network by adjusting weights of connections to
          move towards more correct predictions
@@ -105,7 +114,19 @@ class NeuralNetworkTwo:
         :param log: If should log error amounts
         """
 
-        self.data = data
+        # Default to set values if not sent in
+        if data is None:
+            data = self.train_data
+        else:
+            self.train_data = data
+
+        if target is None:
+            target = self.train_target
+        else:
+            self.train_target = target
+
+        # Check data is consistent and not empty
+        assert len(data) == len(target) > 0
 
         # Init weights
         self.set_weights()
@@ -178,3 +199,56 @@ class NeuralNetworkTwo:
             data = pickle.load(fid)
 
         self.weights = data['weights']
+
+    def set_data(self, data, target, test_amount=7):
+        """
+        Sets data and splits it into train and test groups
+
+        :param data: Inputs
+        :param target: Outputs
+        :param test_amount: Number to test
+        """
+
+        self.train_data = data[:-test_amount]
+        self.train_target = target[:-test_amount]
+        self.test_data = data[-test_amount:]
+        self.test_target = target[-test_amount:]
+
+    def test(self, data=None, target=None):
+        """
+        Test accuracy of neural network on other data
+
+        :param data: Inputs
+        :param target: Outputs
+        :returns: Accuracy ratio
+        """
+
+        # Default to set values if not sent in
+        if data is None:
+            data = self.test_data
+
+        if target is None:
+            target = self.test_target
+
+        # Die if data is inconsistent or empty arrays
+        assert len(data) == len(target) > 0
+
+        # Get differences between expected and predicted
+        print('')
+        print('Target     :', target.reshape(-1))
+        actual = self.predict(data, round_vals=True)
+        print('Actual     :', actual)
+        err_array = list(target.reshape(-1) - actual)
+        print('Error Array:', err_array)
+        # Return accuracy
+        return round(err_array.count(0) / len(err_array), 4)
+
+    def custom_round(self, value):
+        """
+        Rounds number
+
+        :param value: Value to round
+        :returns: Rounded value
+        """
+
+        return round(value * 2) / 2

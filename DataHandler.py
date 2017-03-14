@@ -35,6 +35,28 @@ class DataHandler:
 		else:
 			return 1
 
+	def type_to_description(self, type):
+		"""
+		Convert type to description
+
+		:param type: The number representing the type of image
+		"""
+
+		descriptions = {
+			0: 'left',
+			.5: 'right',
+			1: 'forward'
+		}
+
+		try:
+			description = descriptions[type]
+		except KeyError:
+			description = 'Unknown'
+
+		return description
+
+
+
 	def shuffle(self):
 		assert len(self.data) == len(self.target)
 		p = numpy.random.permutation(len(self.data))
