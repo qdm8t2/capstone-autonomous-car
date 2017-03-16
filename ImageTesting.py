@@ -5,14 +5,20 @@ from PIL import Image
 from numpy import *
 from pylab import *
 from PIL import ImageOps
+from os import listdir
+from os.path import isfile, join
+
 
 
 
 #take in an image, convert to greyscale, convert to an image array, do some transformations, histogram equalization, convert back to an image, save'
 
 def imageprocess (String2, int2):
+    print (String2 + " was the #" + str(int2)+ " image processed")
+
     try:
-        pil_im = Image.open("images/" + String2 ).convert('L')                               #opens said image and converts it to greyscale
+        if not(String2 == "  "):
+            pil_im = Image.open("images/" + String2 ).convert('L')                               #opens said image and converts it to greyscale
 
     except IOError:
         print ("Could not read image " + "images/" + String2)                               #handles a bad filename
@@ -72,7 +78,30 @@ def imageprocess (String2, int2):
         pil_im.save(String2+'.jpg')
     return
 
+#############################################################################
+#       Build fileInfoses.txt by taking filenames from a directory          #
+#############################################################################
+finalValue = 0
 
+
+filesInImages = [f for f in listdir('images') if isfile(join('images' ,f))]
+filestream1 = open("fileInfoses.txt", "w")
+line = ""
+line = line + str(0) + " ,"                                                 #note this 0 here indicates no images have been processed yet
+
+for p in filesInImages: line = line + p +","
+line = line + "end"
+
+
+
+print("after two newlines we will print the list of images to be processed, IE what should be in the CSV file, assuming no images have been processed already\n\n")
+print (line + "\n")
+filestream1.writelines(line)
+filestream1.truncate()
+
+
+
+#############################################################################
 try:
     filestream = open("fileInfoses.txt", "r+")            #opens a text file with one line containing comma seperated values for the file names ect
 except IOError:
@@ -91,24 +120,26 @@ with filestream:
     originalValue = currentline[0]                                                 # what is the number of elements already processed, Important this value doesnt change with currentline[0]
     for i in range(1,noElements):                                           # if i > than number of elements already processed then the image has yet to be processed
         if( i > originalValue | originalValue == 0):
-            print (currentline[i])
-            if currentline[i] != "\n":                                                  # if its not a newline character then its going to be a file name of a preprocessing image
-                imageprocess(currentline[i],currentline[0])
-                currentline[0] = int(currentline[0]) + 1                        #update number of processed images
-            elif currentline[i] == "\n":
-                filestream.close()                                                                      # we finished the CSV, close the file to reset our position
-                filestream = open ('fileInfoses.txt', "w")
-                currentline[0] = str(currentline[0])
-                for i in range (0, noElements):                                                         # reopen the file and write in the old line of text but with the updated integer representing # of processed files
-                    currentline[i] = currentline[i] + ","
-                    if( i == noElements):
-                        currentline[i] = currentline[i] + "\n"
-                        i = i + 1
-                filestream.writelines(currentline)
+            if (currentline[i] == "end"):
+                filestream.close()
+                filestream = open("fileInfoses.txt", "r+")                                      #close the file to start from the beginning again
+                line = filestream.readline()
+                line = line.split(",")
+                newline= str(finalValue)+ ","
+                print(newline)
+                print(" the no of images processed is " + str(finalValue))                #the purpose of this is to write the number of images processed to the CSV file
+                for i in range (1,len(line)):
+                    newline = newline + line[i] + ","
+                print(newline)
+                filestream.writelines(newline)
+                filestream.truncate()
+                                                                        # although it doesnt actually change the first value  of the CSV [that represents # of processed images ] yet,
+                                                                                                    # it does rewrite the line allowing me to change that soon
 
-    filestream.truncate()
-
-
+            if currentline[i] != "end":      # if its not a newline character then its going to be a file name of a preprocessing image
+                    imageprocess(currentline[i], currentline[0])
+                    currentline[0] = int(currentline[0]) + 1  # update number of processed images
+                    finalValue = int(currentline[0])
 
 
 
