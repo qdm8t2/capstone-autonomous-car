@@ -31,14 +31,27 @@ def imageprocess (String2, int2):
         height = pil_im.size[1]/6                                    #how much for the height
 
         #apply the crop line one: left edge, two: top edge, three: right edge, four: bottom
-        pil_im = pil_im.crop(
-            (
-                halfwidth - width,
-                halfheight - height,
-                halfwidth + width,
-                halfheight + halfheight,                    #we want the image as close to the front of the car/ camera as possible right? so no cropping has been done for the bottom edge
-            )
-        )
+
+        if ((width + halfwidth) > pil_im.size[0]):
+            print (" your width is out of bounds, too big the original width is " + str(pil_im.size[0]) + " your proposed size is " + str((width + halfwidth )))
+            sys.exit()
+        elif ((height + halfheight) > pil_im.size[1]):
+            print(" your height is out of bounds, too big the original height is " + str(pil_im.size[1]) + " your proposed size is " + str((height + halfheight)))
+            sys.exit()
+        else:
+            pil_im = pil_im.crop(
+                (
+                    halfwidth - width,
+                    halfheight - height,
+                    halfwidth + width,
+                    halfheight + halfheight,                    #we want the image as close to the front of the car/ camera as possible right? so no cropping has been done for the bottom edge
+                )
+                )
+        # define a maximum size for the image. 1000 x 1000 in this case, if we cropped too small do not save the image
+        size = 1000, 1000
+        if( pil_im.size[0] < size[0] & pil_im.size[1] < size[1]):
+            print("Your crop has made the image too small, we would like at least a 1000 width image, your width was " + str(pil_im.size[0]))
+            sys.exit()                                            #in this instance we are going to say the image is too small if BOTH the size and the width are smaller than 1000
 
         pil_im = array(pil_im)                                                  # convert the image to an array
 
@@ -50,13 +63,11 @@ def imageprocess (String2, int2):
         pil_im = Image.fromarray(uint8(pil_im))
         pil_im = ImageOps.equalize(pil_im)
 
-        # define a maximum size for the image. 1000 x 1000 in this case
-        size = 1000 , 1000
 
         # resize the image
-        pil_im.thumbnail(size, Image.ANTIALIAS)                                 #we use thumbnail to preserve the aspect ratio during the resize, dont want to distort the image in any way
+        pil_im.thumbnail(size, Image.ANTIALIAS)                                 #we use thumbnail to preserve the aspect ratio during the resize, dont want to distort the image in any way, using our defined size
 
-        String2 = 'images/newpicture0'                                                  #save transformed image as newpicture0
+        String2 = 'images/post/newpicture0'                                                  #save transformed image as newpicture0
         String2 = String2 + str(int2)
         pil_im.save(String2+'.jpg')
     return
