@@ -87,12 +87,25 @@ with filestream:
         print("in \"fileInfoses.txt\" we expect the first value in the ONE LINE CSV that ends with a COMMA followed by a RETURN to be an integer, telling us how many images we already have converted")     #error code
         sys.exit()                                                          #exit
 
-    noElements = len(currentline)
-    for i in range(1,noElements):                                           # i thought i would be clever and not need to mess with newlines or end of file
-        print (currentline[i])
-        if currentline[i] != "\n":                                                  # but it didnt work
-            imageprocess(currentline[i],currentline[0])
-            currentline[0] = int(currentline[0]) + 1     #increment the first int, so the images arent saved over eachother
+    noElements = len(currentline)                                                   #get number of elements on first line
+    originalValue = currentline[0]                                                 # what is the number of elements already processed, Important this value doesnt change with currentline[0]
+    for i in range(1,noElements):                                           # if i > than number of elements already processed then the image has yet to be processed
+        if( i > originalValue | originalValue == 0):
+            print (currentline[i])
+            if currentline[i] != "\n":                                                  # if its not a newline character then its going to be a file name of a preprocessing image
+                imageprocess(currentline[i],currentline[0])
+                currentline[0] = int(currentline[0]) + 1                        #update number of processed images
+            elif currentline[i] == "\n":
+                filestream.close()                                                                      # we finished the CSV, close the file to reset our position
+                filestream = open ('fileInfoses.txt', "w")
+                currentline[0] = str(currentline[0])
+                for i in range (0, noElements):                                                         # reopen the file and write in the old line of text but with the updated integer representing # of processed files
+                    currentline[i] = currentline[i] + ","
+                    if( i == noElements):
+                        currentline[i] = currentline[i] + "\n"
+                        i = i + 1
+                filestream.writelines(currentline)
+
     filestream.truncate()
 
 
