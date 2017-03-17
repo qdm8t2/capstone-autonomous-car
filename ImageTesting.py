@@ -10,9 +10,9 @@ from os.path import isfile, join
 
 
 
-
-#take in an image, convert to greyscale, convert to an image array, do some transformations, histogram equalization, convert back to an image, save'
-
+######################################################################################################################################################
+# take in an image, convert to greyscale, convert to an image array, do some transformations, histogram equalization, convert back to an image, save #
+######################################################################################################################################################
 def imageprocess (String2, int2):
     print (String2 + " was the #" + str(int2)+ " image processed")
 
@@ -81,27 +81,31 @@ def imageprocess (String2, int2):
 #############################################################################
 #       Build fileInfoses.txt by taking filenames from a directory          #
 #############################################################################
+def BuildCSV():
+    finalValue = 0
+    filesInImages = [f for f in listdir('images') if isfile(join('images' ,f))]
+    filestream1 = open("fileInfoses.txt", "w")
+    line = ""
+    line = line + str(0) + " ,"                                                 #note this 0 here indicates no images have been processed yet
+
+    for p in filesInImages: line = line + p +","
+    line = line + "end"
+
+
+
+    print("after two newlines we will print the list of images to be processed, IE what should be in the CSV file, assuming no images have been processed already\n\n")
+    print (line + "\n")
+    filestream1.writelines(line)
+    filestream1.truncate()
+
+
+
+###############################################################################
+#                  " main "                                                   #
+###############################################################################
+
 finalValue = 0
-
-
-filesInImages = [f for f in listdir('images') if isfile(join('images' ,f))]
-filestream1 = open("fileInfoses.txt", "w")
-line = ""
-line = line + str(0) + " ,"                                                 #note this 0 here indicates no images have been processed yet
-
-for p in filesInImages: line = line + p +","
-line = line + "end"
-
-
-
-print("after two newlines we will print the list of images to be processed, IE what should be in the CSV file, assuming no images have been processed already\n\n")
-print (line + "\n")
-filestream1.writelines(line)
-filestream1.truncate()
-
-
-
-#############################################################################
+BuildCSV() #we can enable/ disable this line with comments as needed
 try:
     filestream = open("fileInfoses.txt", "r+")            #opens a text file with one line containing comma seperated values for the file names ect
 except IOError:
@@ -118,30 +122,37 @@ with filestream:
 
     noElements = len(currentline)                                                   #get number of elements on first line
     originalValue = currentline[0]                                                 # what is the number of elements already processed, Important this value doesnt change with currentline[0]
-    for i in range(1,noElements):                                           # if i > than number of elements already processed then the image has yet to be processed
+    for i in range(1,noElements - 1):                                           # if i > than number of elements already processed then the image has yet to be processed
         if( i > originalValue | originalValue == 0):
-            if (currentline[i] == "end"):
-                filestream.close()
-                filestream = open("fileInfoses.txt", "r+")                                      #close the file to start from the beginning again
-                line = filestream.readline()
-                line = line.split(",")
-                newline= str(finalValue)+ ","
-                print(newline)
-                print(" the no of images processed is " + str(finalValue))                #the purpose of this is to write the number of images processed to the CSV file
-                for i in range (1,len(line)):
-                    newline = newline + line[i] + ","
-                print(newline)
-                filestream.writelines(newline)
-                filestream.truncate()
-                                                                        # although it doesnt actually change the first value  of the CSV [that represents # of processed images ] yet,
-                                                                                                    # it does rewrite the line allowing me to change that soon
 
-            if currentline[i] != "end":      # if its not a newline character then its going to be a file name of a preprocessing image
+            if i != noElements - 1 :
                     imageprocess(currentline[i], currentline[0])
-                    currentline[0] = int(currentline[0]) + 1  # update number of processed images
-                    finalValue = int(currentline[0])
+                    if ( i != noElements - 2):
+                        currentline[0] = int(currentline[0]) + 1   # update number of processed images
+                        finalValue = int(currentline[0])
+                    elif ( i == noElements - 2):                    # we dont update the count on the last one cuz there is not a next image
+                        finalValue = int(currentline[0])
+
+    print("\n\n"+str(finalValue)+ "\n\n")
+    filestream.close()
 
 
+    #finally we update the CSV file to reflect the number of processed images
+    try:
+        filestream1 = open("fileInfoses.txt", "r+")
+    except IOError:
+        print(" Could not open textfile: fileInfoses.txt ( the second time )")  # handle a bad filename without crashing
+        sys.exit()
+    with filestream1:
+        firstline = filestream1.readline()
+        firstline = firstline.split(",")
+        firstline[0] = str(finalValue)
+        line = ""
+        line = line + str(finalValue) + " ,"  # note this 0 here indicates no images have been processed yet
+
+        for x in firstline[:-1]: line = line + x + ","
+        line = line + "end"
+        print(line)
 
 
 #other transformations I looked at to adjust contrast in images. Leaving here as reference for now
