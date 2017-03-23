@@ -14,7 +14,9 @@ from os.path import isfile, join
 # take in an image, convert to greyscale, convert to an image array, do some transformations, histogram equalization, convert back to an image, save #
 ######################################################################################################################################################
 def imageprocess (String2, int2):
-    print (String2 + " was the #" + str(int2)+ " image processed")
+
+    #print(" \n          the following print line is from imageprocess( ) in ImageTesting.py: \n")
+    #print (String2 + " was the #" + str(int2)+ " image processed")
 
     try:
         if not(String2 == "  "):
@@ -76,12 +78,16 @@ def imageprocess (String2, int2):
         String2 = 'images/post/newpicture0'                                                  #save transformed image as newpicture0
         String2 = String2 + str(int2)
         pil_im.save(String2+'.jpg')
+
     return
 
 #############################################################################
 #       Build fileInfoses.txt by taking filenames from a directory          #
 #############################################################################
 def BuildCSV():
+    #print(
+     #   "******************************************************** \n the following print lines are from BuildCSV( ) in ImageTesting.py \n ************************************************\n")
+
     if not(os.path.isdir("images")):
         print("\n the provided path in the function BUILD CSV doesnt exist")
         sys.exit()
@@ -103,105 +109,184 @@ def BuildCSV():
 
 
 
-        print("after two newlines we will print the list of images to be processed, IE what should be in the CSV file, assuming no images have been processed already\n\n")
-        print (line + "\n")
+        #print("after two newlines we will print the list of images to be processed, IE what should be in the CSV file, assuming no images have been processed already\n\n")
+        #print (line + "\n")
         filestream1.writelines(line)
         filestream1.truncate()
+    return
 
 
 
 ###############################################################################
-#                  " main "                                                   #
+#                  ImageProcessing "Driver"                                   #
 ###############################################################################
 
-finalValue = 0                                                                   # "global" var cuz im a bad programmer ( counts the number of images processed
-
-############################### ENABLE/ DISABLE THIS LINE OF CODE TO REPOPULATE THE CSV WITH ALL IMAGES IN IMAGES (EXCLUDING POST) ################################
-
-#BuildCSV()                    #we can enable/ disable this line with comments as needed
-
-############################## When THIS LINE IS ENABLED WE WILL PROCESS ALL THE IMAGES, EVEN ONES THAT HAVE ALREADY BEEN PROCESSED ################################
 
 
-try:
-    filestream = open("fileInfoses.txt", "r+")            #opens a text file with one line containing comma seperated values for the file names ect
-except IOError:
-    print (" Could not open textfile: fileInfoses.txt" )                    #handle a bad filename without crashing
-    sys.exit()
-with filestream:
-    currentline = filestream.readline()
-    currentline = currentline.split(",")                                           # the very first element when you split on the comma will be an integer we change this value if we dont want to override our previous transformations
+def ImageProcessingDriver():
+    finalValue = 0                                                                   # "global" var cuz im a bad programmer ( counts the number of images processed
+
+    ############################### ENABLE/ DISABLE THIS LINE OF CODE TO REPOPULATE THE CSV WITH ALL IMAGES IN IMAGES (EXCLUDING POST) ################################
+
+    #BuildCSV()                    #we can enable/ disable this line with comments as needed
+
+    ############################## When THIS LINE IS ENABLED WE WILL PROCESS ALL THE IMAGES, EVEN ONES THAT HAVE ALREADY BEEN PROCESSED ################################
+
+    #print(
+        #"******************************************************** \n the following print lines are from ImageProcessingDriver( ) in ImageTesting.py \n ************************************************\n")
     try:
-        currentline[0]= int(currentline[0])                 # attempt to cast the first value in the csv as an integer
-    except ValueError:
-        print("in \"fileInfoses.txt\" we expect the first value in the ONE LINE CSV that ends with a the string \"end\" to be an integer,representing the No images we already have converted")     #error code
-        sys.exit()                                                          #exit
-
-    noElements = len(currentline)                                                   #get number of elements on first line
-    originalValue = currentline[0]                                                 # what is the number of elements already processed, Important this value doesnt change with currentline[0]
-    for i in range(1,noElements - 1):                                           # if i > than number of elements already processed then the image has yet to be processed
-        if( i > originalValue | originalValue == 0):
-
-            if i != noElements - 1 :
-                    imageprocess(currentline[i], currentline[0])
-                    if ( i != noElements - 2):
-                        currentline[0] = int(currentline[0]) + 1   # update number of processed images
-                        finalValue = int(currentline[0])
-                    elif ( i == noElements - 2):                    # we dont update the count on the last one cuz there is not a next image
-                        finalValue = int(currentline[0])
-
-    print("\n\n"+str(finalValue)+ " images proceessed \n\n")
-    filestream.close()
-
-
-    #finally we update the CSV file to reflect the number of processed images
-    try:
-        filestream1 = open("fileInfoses.txt", "r+")
+        filestream = open("fileInfoses.txt", "r+")            #opens a text file with one line containing comma seperated values for the file names ect
     except IOError:
-        print(" Could not open textfile: fileInfoses.txt ( the second time )")  # handle a bad filename without crashing
+        print (" Could not open textfile: fileInfoses.txt" )                    #handle a bad filename without crashing
         sys.exit()
-    with filestream1:
-        firstline = filestream1.readline()
-        firstline = firstline.split(",")
-        firstline[0] = str(finalValue)
-        line = ""
-        #line = line + str(finalValue) + " ,"  # note this 0 here indicates no images have been processed yet
-
-        for x in firstline[:-1]: line = line + x + ","
-        line = line + "end"
-
-        filestream1.close()
-
-
-
-        print("the following line should be written to the CSV IF FINALVALUE (# of images processed) is not zero [note this integer is the variable finalValue")
-        print(" \n\n " + line + "\n\n")                                             # print the line, this is probably redundent at this point but BuildCSV is utilized differently
-
-
-
+    with filestream:
+        currentline = filestream.readline()
+        currentline = currentline.split(",")                                           # the very first element when you split on the comma will be an integer we change this value if we dont want to override our previous transformations
         try:
-            filestream2 = open("fileInfoses.txt", "r+")
+            currentline[0]= int(currentline[0])                 # attempt to cast the first value in the csv as an integer
+        except ValueError:
+            print("in \"fileInfoses.txt\" we expect the first value in the ONE LINE CSV that ends with a the string \"end\" to be an integer,representing the No images we already have converted")     #error code
+            sys.exit()                                                          #exit
+
+        noElements = len(currentline)                                                   #get number of elements on first line
+        originalValue = currentline[0]                                                 # what is the number of elements already processed, Important this value doesnt change with currentline[0]
+        for i in range(1,noElements - 1):                                           # if i > than number of elements already processed then the image has yet to be processed
+            if( i > originalValue | originalValue == 0):
+
+                if i != noElements - 1 :
+                        imageprocess(currentline[i], currentline[0])
+                        if ( i != noElements - 2):
+                            currentline[0] = int(currentline[0]) + 1   # update number of processed images
+                            finalValue = int(currentline[0])
+                        elif ( i == noElements - 2):                    # we dont update the count on the last one cuz there is not a next image
+                            finalValue = int(currentline[0])
+
+        print("\n\n"+str(finalValue)+ " images proceessed \n\n")
+        filestream.close()
+
+
+        #finally we update the CSV file to reflect the number of processed images
+        try:
+            filestream1 = open("fileInfoses.txt", "r+")
+        except IOError:
+            print(" Could not open textfile: fileInfoses.txt ( the second time )")  # handle a bad filename without crashing
+            sys.exit()
+        with filestream1:
+            firstline = filestream1.readline()
+            firstline = firstline.split(",")
+            firstline[0] = str(finalValue)
+            line = ""
+            #line = line + str(finalValue) + " ,"  # note this 0 here indicates no images have been processed yet
+
+            for x in firstline[:-1]: line = line + x + ","
+            line = line + "end"
+
+            filestream1.close()
+
+
+
+            print("the following line should be written to the CSV IF FINALVALUE (# of images processed) is not zero [note this integer is the variable finalValue")
+            print(" \n\n " + line + "\n\n")                                             # print the line, this is probably redundent at this point but BuildCSV is utilized differently
+
+
+
+            try:
+                filestream2 = open("fileInfoses.txt", "r+")
+            except IOError:
+                print(
+                    " Could not open textfile: fileInfoses.txt ( the second time )")  # handle a bad filename without crashing
+                sys.exit()
+            with filestream2:
+                if(finalValue != 0):
+                    filestream2.writelines(line)
+                else:
+                    print("no images were processed")
+    return
+
+
+
+            #filestream1.writelines(line)
+
+            # now we just write this line to fileInfoses.txt save and we are golden. Fix your uncatched errors and comments then do the Testing document for Capstone
+
+
+    #other transformations I looked at to adjust contrast in images. Leaving here as reference for now
+    #print( im.shape, im.dtype )
+    #im2 = 255 - im #invert image
+    #im3 =(100.0/255) * im + 100 #clamp to intervall 1000...200
+
+
+
+def processedImagesToArray():
+    #print(
+        #"******************************************************** \n the following print lines are from processedImagesToArray( ) in ImageTesting.py \n ************************************************")
+
+    if not(os.path.isdir("images/post")):
+        print("\n the provided path in the function processedImagesToArray doesnt exist")
+        sys.exit()
+    else:
+        finalValue = 0
+        filesInImages = [f for f in listdir('images/post') if isfile(join('images/post' ,f))]
+        line = ""
+        #line = line + " ,"  # note this 0 here indicates no images have been processed yet
+
+        for p in filesInImages:
+            line = line + p + ","
+            #print (p)
+
+
+        line = line + "end"
+        print ( "\n\n these are the images that were processed \n\n they will also be the ones converted to an array by processedImagesToArray\n\n")
+        print (" \n\n" + line + " \n")
+        try:
+            filestream3 = open("processedImages.txt", "r+")
         except IOError:
             print(
-                " Could not open textfile: fileInfoses.txt ( the second time )")  # handle a bad filename without crashing
+                " Could not open textfile: processedImages.txt" )  # handle a bad filename without crashing
             sys.exit()
-        with filestream2:
-            if(finalValue != 0):
-                filestream2.writelines(line)
-            else:
-                print("no images were processed")
+        with filestream3:
+            filestream3.writelines(line)
+
+        filestream3.close()
+
+        try:
+            filestream4 = open("processedImages.txt", "r+")
+        except IOError:
+            print(
+                " Could not open textfile: processedImages.txt (the second time" )  # handle a bad filename without crashing
+            sys.exit()
+        with filestream4:
+            lineToArray = filestream4.readline()
+            lineToArray = lineToArray.split(",")
+            #print("\n"+str(len(lineToArray))+"\n" +lineToArray[4])  # this is working. now just need to convert every element in lineToArray to an image array then return lineToArray
+
+            processedImages = len(lineToArray) -1
+            listOfImageArrays = []
+
+
+            for i in range(0,processedImages):
+                #convert the image at lineToArray[i] to an image array and place it in LineToArray[i]
+                # we might actually need a new array of len(lineToArray) - 1 because the array probably cant be partially images and partially image arrays
+                #print("\n"+lineToArray[i])
+                try:
+                    if not (i == len(lineToArray)-1):
+                        pil_im = Image.open("images/post/" + lineToArray[i])
+
+                except IOError:
+                    print("Could not read image " + "images/post/" + lineToArray)  # handles a bad filename
+                    sys.exit()
+                    # quits so cuz bad filename
+
+                with pil_im:
+                    pil_im = array(pil_im)
+                    listOfImageArrays.append(pil_im)
+    return listOfImageArrays
 
 
 
-        #filestream1.writelines(line)
-
-        # now we just write this line to fileInfoses.txt save and we are golden. Fix your uncatched errors and comments then do the Testing document for Capstone
 
 
-#other transformations I looked at to adjust contrast in images. Leaving here as reference for now
-#print( im.shape, im.dtype )
-#im2 = 255 - im #invert image
-#im3 =(100.0/255) * im + 100 #clamp to intervall 1000...200
+
 
 
 
