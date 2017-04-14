@@ -2,3 +2,6 @@ __pycache__/
 data/models/current.pkl
 program.prof
 sftp-config.json
+data/*
+*.swp
+*.pyc
