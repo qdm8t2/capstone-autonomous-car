@@ -1,1 +1,0 @@
-newpicture00.jpg,newpicture01.jpg,newpicture010.jpg,newpicture011.jpg,newpicture012.jpg,newpicture013.jpg,newpicture014.jpg,newpicture02.jpg,newpicture03.jpg,newpicture04.jpg,newpicture05.jpg,newpicture06.jpg,newpicture07.jpg,newpicture08.jpg,newpicture09.jpg,end
