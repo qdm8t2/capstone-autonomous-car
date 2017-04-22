@@ -24,6 +24,8 @@ cam.resolution = (1280, 720)
 cam.framerate=80
 camInterval=.5
 
+# Idle will let the program know when an action is being taken, and trigger a picture. 
+# Action will specefy the action being taken, so the filepath can be resolved
 idle=True
 action=""
 
@@ -52,6 +54,7 @@ while True:
 				# Need to take picture before to prevent blur
 				file_string ="data/"+action+"/img_" + datetime.datetime.now().strftime("%H-%M-%S-%f") + ".jpg"
 				cam.capture(file_string,use_video_port=True)
+				# cam.capture(file_string)
 				driver.turn(Direction.RIGHT, 255)
 			# Left
 			if event.button == 7:
@@ -59,15 +62,31 @@ while True:
 				# Need to take picture before to prevent blur
 				file_string ="data/"+action+"/img_" + datetime.datetime.now().strftime("%H-%M-%S-%f") + ".jpg"
 				cam.capture(file_string,use_video_port=True)
+				# cam.capture(file_string)
+				driver.turn(Direction.LEFT, 255)
+
+			# NOT TAKE PICTURES. USes the Shape buttons.
+			# UP
+			if event.button == 12:
+				driver.drive(Direction.FORWARD, 150)
+			# Down
+			if event.button == 14:
+				driver.drive(Direction.BACKWARD, 150)
+			# Right
+			if event.button == 13:
+				driver.turn(Direction.RIGHT, 255)
+			# Left
+			if event.button == 15:
 				driver.turn(Direction.LEFT, 255)
 				
 
 		# Check if picture should be taken
 		currSeconds=camInterval*round(time.time()/camInterval)
-		print(currSeconds)
+		# print(currSeconds)
 		if not idle and currSeconds!=secondTracker:
 			file_string ="data/"+action+"/img_" + datetime.datetime.now().strftime("%H-%M-%S-%f") + ".jpg"
 			cam.capture(file_string,use_video_port=True)
+			# cam.capture(file_string)
 			secondTracker=currSeconds
 
 		# Turn off motors if leaving game or done pressing button
