@@ -65,7 +65,11 @@ while True:
 				# cam.capture(file_string)
 				driver.turn(Direction.LEFT, 255)
 
+<<<<<<< HEAD
 			# NOT TAKE PICTURES. USes the Shape buttons.
+=======
+			# NOT TAKE PICTURES
+>>>>>>> refs/remotes/origin/master
 			# UP
 			if event.button == 12:
 				driver.drive(Direction.FORWARD, 150)
