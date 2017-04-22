@@ -157,13 +157,17 @@ class NeuralNetwork():
         # Average costs and negate
         return (a + b).sum() / len(target) * -1
 
-    def predict(self, inputs):
+    def predict(self, inputs, process_image=False):
         """
         Make a prediction
 
         :param inputs: The data to predict from
+        :param process_image: If inputs should be processed
         :returns: Total prediction and final prediction
         """
+
+        if process_image:
+            inputs = [self.image_processor.process(im) for im in inputs]
         
         # Array of predictions
         predict_layers = [inputs]
