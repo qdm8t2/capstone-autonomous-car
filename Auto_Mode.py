@@ -1,5 +1,6 @@
 # Imports
 from Driver import Driver, Direction
+import ImageProcess
 import pygame
 import picamera
 import tty
@@ -8,11 +9,13 @@ import sys
 # Initializing variables
 continue=True
 stream=io.BytesIO() #where we store the pictures
+processer = ImageProcess.ImageProcess()   
 cam = picamera.PiCamera()
 cam.hflip = True
 cam.vflip=True
 cam.resolution = (1280, 720)
 cam.framerate=80
+
 
 # Loop me til you kill me
 while continue:
@@ -22,9 +25,10 @@ while continue:
 	# Read In Photo
 	try:
 		stream.seek(0)
-		Image.open(stream)
-		# IMAGE PROCESSING GOES HERE
-		# NEURAL NET DECISION GOES HERE
+		# Unneeded - Done in image processor
+		# im=Image.open(stream)
+		processer.imageProcesser(stream)
+		
 
 	finally:
 		# Reset the stream and event
