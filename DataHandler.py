@@ -1,70 +1,125 @@
 import glob
 import numpy
+from scipy.misc import imread, imresize, imshow
 from PIL import Image
 
 class DataHandler:
-	def __init__(self, files=glob.glob('data/**/*.png')):
-		self.data = []
-		self.target = []
-		self.handle_files(files)
+    """
+    Handles the neural network data
+    """
 
-	def handle_files(self, files):
-		for file in files:
-			image = self.get_image(file)
-			self.data.append(self.convert_image(image))
-			self.target.append([self.determine_type(file)])
-		self.shuffle()
+    def __init__(self, files=glob.glob('data/**/*.jpg'), initialize_files=True, debug_enabled=False):
+        """
+        Constructor
 
-	def get_image(self, file):
-		return Image.open(file)
+        :param files: Files to load in
+        :param debug_enabled: If debug output is enabled
+        """
 
-	def convert_image(self, image):
-		pic = []
-		for pixel in iter(image.getdata()):
-			pic.append(self.convert_pixel(pixel))
-		return pic
+        # Initialize class variables
+        self.data = []
+        self.target = []
+        self.debug_enabled = debug_enabled
+        if initialize_files:
+            self.handle_files(files)
 
-	def convert_pixel(self, pixel):
-		return (pixel[0] + pixel[1] + pixel[2]) / 3
+    def handle_files(self, files):
+        """
+        Load in files
 
-	def determine_type(self, file):
-		if file.find('left') != -1:
-			return 0
-		elif file.find('right') != -1:
-			return .5
-		else:
-			return 1
-
-	def type_to_description(self, type):
-		"""
-		Convert type to description
-
-		:param type: The number representing the type of image
-		"""
-
-		descriptions = {
-			0: 'left',
-			.5: 'right',
-			1: 'forward'
-		}
-
-		try:
-			description = descriptions[type]
-		except KeyError:
-			description = 'Unknown'
-
-		return description
+        :param files: List of files to load
+        """
 
 
+        # Loop through each file
+        num_forwards = 0
+        for file in files:
 
-	def shuffle(self):
-		assert len(self.data) == len(self.target)
-		p = numpy.random.permutation(len(self.data))
-		self.data = numpy.array(self.data)[p]
-		self.target = numpy.array(self.target)[p]
+            # Normalize data so forwards are not overrepresented
+            if 'forward' in file:
+                num_forwards += 1
+                if num_forwards > 620:
+                    continue
 
-	def get_data(self):
-		return self.data
+            # Read image
+            image = imread(file, flatten=True)
 
-	def get_target(self):
-		return self.target
+            # Determine type
+            im_type = self.determine_type(file)
+
+            # Add to lists
+            self.data.append(image)
+            self.target.append(im_type)
+
+            # Debug logging
+            if self.debug_enabled:
+                im_type_index = self.determine_index(im_type)
+                print(self.index_to_description(im_type_index) + ": " + file)
+
+    def determine_type(self, file):
+        """
+        Determine file type from file location
+
+        :param file: File location
+        :returns: Number representing file type
+        """
+
+        # Left - 2
+        if file.find('left') != -1:
+            return [0, 0, 1]
+        # Right - 1
+        elif file.find('right') != -1:
+            return [0, 1, 0]
+        # Forward - 0
+        elif file.find('forward') != -1:
+            return [1, 0, 0]
+        else:
+            print("Unknown image type: ", file)
+            return [0, 0, 0]
+
+    def determine_index(self, type_arr):
+        """
+        Gets index from type array
+
+        :param type_arr: The type array as defined in self.determine_type
+        :returns: The index
+        """
+        return numpy.argmax(type_arr)
+
+    def index_to_description(self, index):
+        """
+        Convert type to description
+
+        :param index: The index
+        :returns: Description of the numeric representation of the type
+        """
+
+        descriptions = {
+            0: 'forward',
+            1: 'right',
+            2: 'left'
+        }
+
+        # Return description from dictionary or 'Unknown'
+        try:
+            description = descriptions[index]
+        except KeyError:
+            description = 'Unknown'
+
+        return description
+
+    def get_data(self):
+        """
+        Get the data (images)
+        
+        :returns: Array of image arrays
+        """
+        return self.data
+
+    def get_target(self):
+        """
+        Get the target (outputs)
+
+        :returns: Array of outputs for the data
+        """
+        return self.target

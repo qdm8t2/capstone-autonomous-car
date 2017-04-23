@@ -1,9 +1,13 @@
 import numpy as np
-from scipy.misc import imsave
+from scipy.misc import imsave, imresize, imread
 from time import time
 from DataHandler import DataHandler
+import pickle
 
 class NeuralNetwork():
+    """
+    Neural network using backpropagation
+    """
 
     def __init__(self, hidden_layer_sizes=[50], image_processor=None, debug_enabled=False):
         """
@@ -47,7 +51,7 @@ class NeuralNetwork():
         data, target = self._shuffle_data_(data, target)
 
         # Determine where to split at
-        split_at = int((1 - training_amount) * len(data))
+        split_at = int((1 - test_percent) * len(data))
 
         # Split data
         self.data = data[:split_at]
@@ -60,7 +64,7 @@ class NeuralNetwork():
         # Initialize weights
         self._initialize_weights_()
 
-    def load_data(self, files, test_percent=0.15):
+    def load_data(self, files=None, test_percent=0.15):
         """
         Loads data into neural net
 
@@ -69,7 +73,10 @@ class NeuralNetwork():
         """
 
         # Data Handler
-        dh = DataHandler()
+        if files != None:
+            dh = DataHandler(files, self.debug_enabled)
+        else:
+            dh = DataHandler(debug_enabled=self.debug_enabled)
 
         # Get data, target
         data = dh.get_data()
@@ -166,9 +173,10 @@ class NeuralNetwork():
         :returns: Total prediction and final prediction
         """
 
+        # Process images if they haven't been already
         if process_image:
-            inputs = [self.image_processor.process(im) for im in inputs]
-        
+            inputs = np.array([self.image_processor.process(im) for im in inputs])
+
         # Array of predictions
         predict_layers = [inputs]
 
@@ -358,7 +366,7 @@ class NeuralNetwork():
         :param save_failures: If incorrectly guessed images should be saved
         :param failure_directory: Where to save bad images
         """
-    
+
         # Make prediction
         layers, prediction = self.predict(self.test_data)
 
@@ -416,3 +424,26 @@ class NeuralNetwork():
         # Log accuracy info
         print('Correct: ', (num_correct / len(prediction)))
         print('Number tested: ', len(prediction))
+
+class ImageProcessor():
+    def process(self, image):
+        return imresize(image, (50, 50)).flatten() / 255
+
+# # Training and save example
+# nn = NeuralNetwork(image_processor=ImageProcessor(), debug_enabled=True)
+# nn.load_data()
+# try:
+#     nn.train()
+# except:
+#     pass
+# nn.test()
+# # nn.save()
+
+# # Load and predict sample
+# dh = DataHandler(initialize_files=False)
+# nn = NeuralNetwork()
+# nn.load()
+# im = imread('data/forward/img_19-35-33-084182.jpg', flatten=True)
+# a, prediction = nn.predict([im], True)
+# prediction_index = dh.determine_index(prediction)
+# print("Prediction:", dh.index_to_description(prediction_index))
