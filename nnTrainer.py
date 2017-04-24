@@ -1,0 +1,3 @@
+import NeuralNetworkTwo
+
+nn=NeuralNetworkTwo()

@@ -10,9 +10,13 @@ class Direction(Enum):
     LEFT=3
     RIGHT=4
 
+_DefaultForwardSpeed=150
+_DefaultTurnSpeed=255
+
 
 class Driver:
 
+    # Driver creation and setup
     def __init__(self):
         self.mh=Adafruit_MotorHAT(addr=0x60)
         self.rMotors=[]
@@ -21,7 +25,10 @@ class Driver:
         self.rMotors.insert(2,self.mh.getMotor(2))
         self.lMotors.insert(3,self.mh.getMotor(3))
         self.lMotors.insert(4,self.mh.getMotor(4))
+        self.forwardSpeed=_DefaultForwardSpeed
+        self.turnSpeed=_DefaultTurnSpeed
 
+    # Execute a forward or backward action
     def drive(self,direction,speed):
         # check the direction
         if direction == Direction.FORWARD:
@@ -41,6 +48,7 @@ class Driver:
             motor.setSpeed(speed)
         return
 
+    # Execute a turn
     def turn(self,direction,speed):
         # check the direction
         if direction == Direction.LEFT:
@@ -80,34 +88,16 @@ class Driver:
             motor.setSpeed(speed)	
         return
 
-    def curveTurn(self,direction,speed):
-        # check the direction
-        if direction == Direction.LEFT:
-            mDirection=Adafruit_MotorHAT.BACKWARD
-        elif direction== Direction.RIGHT:
-            mDirection=Adafruit_MotorHAT.FORWARD
-        else:
-            return
-
-        # print("StartMotor")
-        for motor in self.lMotors:
-            motor.run(mDirection)
-            motor.setSpeed(speed+50)
-        for motor in self.rMotors:
-            motor.run(mDirection)
-            motor.setSpeed(speed)
-        time.sleep(1)
-        for motor in self.lMotors:
-            motor.setSpeed(0)
-            motor.run(Adafruit_MotorHAT.RELEASE)
-        for motor in self.rMotors:
-            motor.setSpeed(0)
-            motor.run(Adafruit_MotorHAT.RELEASE)
+    # Number between 0 and 255
+    def setForwardSpeed(self,forwardSpeed):
+        self.forwardSpeed=forwardSpeed
         
+    # Number between 0 and 255
+    def setForwardSpeed(self,forwardSpeed):
+        self.forwardSpeed=forwardSpeed
 
 
-
-    def turnOffMotors(self):
+    def stop(self):
         self.mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
         self.mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
         self.mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
