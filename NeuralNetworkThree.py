@@ -1,8 +1,9 @@
 import numpy as np
-from scipy.misc import imsave, imresize, imread
+from scipy.misc import imresize
 from time import time
 from DataHandler import DataHandler
 import pickle
+from PIL import Image
 
 class NeuralNetwork():
     """
@@ -116,7 +117,7 @@ class NeuralNetwork():
             data = pickle.load(fid)
 
         self.weights = data['weights']
-        self.image_processor = data['image_processor']
+        self.image_processor = ImageProcessor()
 
     def _sigmoid_(self, x):
         """
@@ -419,7 +420,7 @@ class NeuralNetwork():
                 file += actual_dir + ".png"
 
                 # Save image
-                imsave(file, (image.reshape(50, 50) * 255).astype('uint8'))
+                # imsave(file, (image.reshape(50, 50) * 255).astype('uint8'))
 
         # Log accuracy info
         print('Correct: ', (num_correct / len(prediction)))
@@ -428,6 +429,8 @@ class NeuralNetwork():
 class ImageProcessor():
     def process(self, image):
         return imresize(image, (50, 50)).flatten() / 255
+        # im = Image.open(file).convert('L').resize((50, 50))
+        # im = np.array(im).flatten() / 255
 
 # # Training and save example
 # nn = NeuralNetwork(image_processor=ImageProcessor(), debug_enabled=True)

@@ -1,7 +1,9 @@
 # Imports
 from Driver import Driver, Direction
-import NeuralNetworkThree
-import DataHandler
+from NeuralNetworkThree import NeuralNetwork
+from NeuralNetworkThree import ImageProcessor
+from DataHandler import DataHandler
+from scipy.misc import imread,imshow
 import pygame
 import picamera
 import tty
@@ -11,11 +13,12 @@ import math
 import threading
 import datetime
 import io
+from PIL import Image
 
 # Pygame set up
 pygame.init()
 pygame.joystick.init()
-pygame.display.set_mode()
+screen=pygame.display.set_mode((1280, 720))
 
 # Initialize variables
 joystick_set = False
@@ -32,7 +35,7 @@ camInterval=.5
 idle=True
 action=""
 
-tty.setraw(sys.stdin)
+# tty.setraw(sys.stdin)
 # Set current time in seconds
 secondTracker=camInterval*round(time.time()/camInterval)
 
@@ -99,7 +102,7 @@ while True:
 
 		# Turn off motors if leaving game or done pressing button
 		if event.type == pygame.QUIT or event.type == pygame.KEYUP or event.type == pygame.JOYBUTTONUP:
-			driver.turnOffMotors()
+			driver.stop()
 			idle=True
 
 		# Handle exit
@@ -148,39 +151,80 @@ while True:
 
 		print("Auto mode started")
 
+		# cam.start_preview(fullscreen=False, window = (100, 20, 640, 480))
+		dh = DataHandler(initialize_files=False)
+		nn = NeuralNetwork()
+		nn.load()
 
 		# Loop me til you kill me
 		while running:
+			y=time.time()
 			# take a picture
-			cam.capture(stream,'rgb',use_video_port=True)
+			# SS
+			cam.capture('curr.jpg',format='jpeg',use_video_port=True)
+			
+			# cam.capture('curr.jpg',use_video_port=True)
 
 			# Read In Photo
-			try:
-				stream.seek(0)
-				
-				dh = DataHandler(initialize_files=False)
-				nn = NeuralNetwork()
-				nn.load()
-				im = imread(stream, flatten=True)
-				prediction = nn.predict([im], True)
-				prediction_index = dh.determine_index(prediction)
-				print("Prediction:", dh.index_to_description(prediction_index))
+			#TODO BREAK THIS, its not needed
+			if True:
+				# SS
+				# stream.seek(0)
 
+				#SS
+				# im = imread(stream, flatten=True)
+				# stream.seek(0)
+
+
+				im = imread('curr.jpg', flatten=True)
+				# print('Time to take and read:',round(time.time() - y, 5))
+				y=time.time()
+				
+				# curr=Image.open(stream)
+				# raw_str = curr.tostring("raw", 'RGBA')
+				# frame = pygame.image.fromstring(raw_str,len(raw_str),"RGB")
+				frame=pygame.image.load('curr.jpg')
+				screen.blit(frame,(0,0))
+				pygame.display.flip()
+				# print('Time to display:',round(time.time() - y, 5))
+
+				x = time.time()
+				a, prediction = nn.predict([im], True)
+				print('Prediction time:', round(time.time() - x, 5), 'seconds')
+				print('Forward Match  :', round(prediction[0][0]*100, 3), '%')
+				print('Right Match    :', round(prediction[0][1]*100, 3), '%')
+				print('Left Match     :', round(prediction[0][2]*100, 3), '%')
+				prediction_index = dh.determine_index(prediction)
+				print("Prediction     :", dh.index_to_description(prediction_index))
+				print('----------------')
+				# print("Prediction:", dh.index_to_description(prediction_index))
+				#SS
+				# stream.flush()
 				# Forward
 				if prediction_index==0:
 					driver.drive(Direction.FORWARD, 150)
+					time.sleep(.25)
+					driver.stop()
 				# Right
 				if prediction_index==1:
 					driver.turn(Direction.RIGHT, 255)
+					time.sleep(.1)
+					driver.stop()
 				# Left
 				if prediction_index==2:
 					driver.turn(Direction.LEFT, 255)
+					time.sleep(.1)
+					driver.stop()
+
+
 				
 
-			finally:
-				# Reset the stream and event
-				stream.seek(0)
-				stream.truncate()
+			# finally:
+			# # 	print("")
+			# 	# Reset the stream and event
+			# 	# SS
+			# 	stream.seek(0)
+			# 	stream.truncate()
 
 
 			# checks if the player hits the start key, indicating that they want to stop autonomous mode
