@@ -1,6 +1,6 @@
 import glob
 import numpy
-from scipy.misc import imread, imresize, imshow
+# from scipy.misc import imread, imresize, imshow
 from PIL import Image
 
 class DataHandler:
