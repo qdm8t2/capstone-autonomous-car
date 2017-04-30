@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.misc import imsave, imresize, imread
+from scipy.misc import imsave, imresize, imread, imshow
 from time import time
 from DataHandler import DataHandler
 import pickle
@@ -427,23 +427,46 @@ class NeuralNetwork():
 
 class ImageProcessor():
     def process(self, image):
-        return imresize(image, (50, 50)).flatten() / 255
+        resized_image = imresize(image, (50, 50)).reshape(-1, 3)
+        new_image = np.zeros(len(resized_image))
+        for index, pixel in enumerate(resized_image):
+            r = pixel[0]
+            g = pixel[1]
+            b = pixel[2]
+            new_image[index] = 0 if r > 80 and g < 75 and b < 75 else 1
+        return new_image
+
+# import glob
+# i = 0
+# for file in glob.glob('data/forward/*.jpg'):
+#     im = imread(file)
+#     IP = ImageProcessor()
+#     im2 = IP.process(im).reshape(50, 50)
+#     imsave('data/test/' + str(i) + '.jpg', im2)
+#     i += 1
 
 # # Training and save example
 # nn = NeuralNetwork(image_processor=ImageProcessor(), debug_enabled=True)
 # nn.load_data()
 # try:
-#     nn.train()
+#     nn.train(iterations=250000)
 # except:
 #     pass
 # nn.test()
-# # nn.save()
+# nn.save()
 
 # # Load and predict sample
+# import time
 # dh = DataHandler(initialize_files=False)
 # nn = NeuralNetwork()
 # nn.load()
 # im = imread('data/forward/img_19-35-33-084182.jpg', flatten=True)
+# x = time.time()
 # a, prediction = nn.predict([im], True)
+# print('Prediction time:', round(time.time() - x, 5), 'seconds')
+# print('Forward Match  :', round(prediction[0][0], 3), '%')
+# print('Right Match    :', round(prediction[0][1], 3), '%')
+# print('Left Match     :', round(prediction[0][2], 3), '%')
 # prediction_index = dh.determine_index(prediction)
-# print("Prediction:", dh.index_to_description(prediction_index))
+# print("Prediction     :", dh.index_to_description(prediction_index))
+# print('----------------')

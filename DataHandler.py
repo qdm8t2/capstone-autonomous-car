@@ -42,7 +42,7 @@ class DataHandler:
                     continue
 
             # Read image
-            image = imread(file, flatten=True)
+            image = imread(file)
 
             # Determine type
             im_type = self.determine_type(file)
